@@ -1,0 +1,4 @@
+int err::addr_format()  asm "1000 PUSHINT";
+int err::jis_set()      asm "1001 PUSHINT";
+int err::nothing_upd()  asm "1002 PUSHINT";
+int err::no_access()    asm "1003 PUSHINT";

@@ -1,0 +1,23 @@
+#include "func-extlib/extlib.func";
+
+#include "config/op.func";
+#include "config/err.func";
+
+#include "core/storage.func";
+#include "core/handle.func";
+
+
+() recv_internal(int balance, int msg_value, cell msg, slice msg_body) impure {
+    slice slice_msg = msg.begin_parse();
+    throw_if(0, slice_msg~load_uint(4) & 1);
+
+    slice sender_addr = slice_msg~load_msg_addr();
+    throw_unless(err::addr_format(), extlib::basechsmpl_addr?(sender_addr));
+
+    int op = msg_body~load_uint(32);
+
+    if (op == op::transfer_notification()) { handle::transfer_notification(sender_addr); }
+    if (op == op::change_settings()) { handle::change_settings(msg_body, sender_addr); }
+
+    throw(0xffff);
+}

@@ -1,0 +1,6 @@
+.vscode
+
+auto/*
+!auto/.gitkeep
+
+*.boc

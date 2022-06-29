@@ -1,0 +1,3 @@
+[submodule "func/func-extlib"]
+	path = func/func-extlib
+	url = https://github.com/cryshado/func-extlib.git

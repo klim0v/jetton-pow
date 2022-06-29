@@ -1,0 +1,50 @@
+global slice    storage::owner_addr;
+global slice    storage::jwall_addr;
+
+global int      storage::seed;
+global int      storage::pow_complexity;
+
+global int      storage::last_success;
+global int      storage::target_delta;
+global int      storage::min_cpl;
+global int      storage::max_cpl;
+
+() storage::load() impure inline {
+    slice ds = get_data().begin_parse();
+
+    storage::owner_addr     = ds~load_msg_addr();
+    storage::jwall_addr     = ds~load_msg_addr();
+
+    storage::seed           = ds~load_uint(128);
+    storage::pow_complexity = ds~load_uint(256);
+
+    storage::last_success   = ds~load_uint(64);
+    storage::target_delta   = ds~load_uint(64);
+
+    storage::min_cpl        = ds~load_uint(8);
+    storage::max_cpl        = ds~load_uint(8);
+
+    ds.end_parse();
+}
+
+() storage::save() impure inline { 
+    builder storage = begin_cell()
+        .store_slice(storage::owner_addr)
+        .store_slice(storage::jwall_addr)
+        ;; --------------------------------------
+        .store_uint(storage::seed, 128)
+        .store_uint(storage::pow_complexity, 256)
+        ;; --------------------------------------
+        .store_uint(storage::last_success, 64)
+        .store_uint(storage::target_delta, 64)
+        ;; --------------------------------------
+        .store_uint(storage::min_cpl, 8)
+        .store_uint(storage::max_cpl, 8);
+
+    set_data(storage.end_cell());
+}
+
+() storage::exit_save() impure inline {
+    storage::save();
+    throw(0);
+} 
