@@ -2,7 +2,9 @@
 ;;  handle functions
 ;;
 
-() handle::transfer_notification(slice sender_addr) impure inline_ref {
+int ufits(int x, int bits) impure asm "UFITSX";
+
+() handle_int::transfer_notification(slice sender_addr) impure inline_ref {
 
     int empty_jwall? = extlib::slice_data_equal?(
         storage::jwall_addr, 
@@ -17,7 +19,7 @@
     throw(err::jis_set());
 }
 
-() handle::change_settings(slice body, slice sender_addr) impure inline_ref {
+() handle_int::change_settings(slice body, slice sender_addr) impure inline_ref {
     ;;
     ;;  _ target_delta:(## 64) min_cpl:(## 8) max_cpl:(## 8) = Params;
     ;;  _ reset_cpl:(## 8) update_params:(Maybe ^Params) = Body;
@@ -48,4 +50,56 @@
 
     if (reset_cpl | update_params?) { storage::exit_save(); }
     throw(err::nothing_upd());
+}
+
+() handle_ext::mine(slice cs) impure inline_ref {
+    int hash = slice_hash(cs);
+    throw_unless(err::pow_not_solved(), hash < storage::pow_complexity);
+
+    ;; TODO: flags maybe unused
+    (int op, int flags, int expire, int whom, int rdata1, int rseed, int rdata2) = (
+        cs~load_uint(32),   ;; op
+        cs~load_int(8),     ;; flags
+        cs~load_uint(32),   ;; expire
+        cs~load_uint(256),  ;; whom
+        cs~load_uint(256),  ;; rdata1
+        cs~load_uint(128),  ;; rseed
+        cs~load_uint(256)   ;; rdata2
+    );
+
+    cs.end_parse();
+
+    ufits(expire - now(), 10);
+    throw_unless(
+        err::invalid_rparams(), 
+        (rseed == storage::seed) & (rdata1 == rdata2)
+    );
+
+    ;; Proof of Work correct
+    accept_message();
+
+    randomize_lt();
+    randomize(rdata1);
+
+    ;; recompute complexity
+    int delta = now() - storage::last_success;
+    if (delta > 0) {
+        int factor = muldivr(delta, 1 << 128, storage::target_delta);
+
+        ;; factor must be in range 7/8 .. 9/8
+        factor = min(max(factor, 7 << 125), 9 << 125);  
+
+        ;; rescale complexity                        
+        int pow_complexity = muldivr(storage::pow_complexity, factor, 1 << 128);
+        pow_complexity = min(max(pow_complexity, 1 << storage::min_cpl), 1 << storage::max_cpl);
+
+        storage::pow_complexity = pow_complexity;
+    }
+
+    storage::seed = random() >> 128;
+    storage::last_success = now();
+
+    commit();
+
+    ;; TODO: reward for whom address
 }

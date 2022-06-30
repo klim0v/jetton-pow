@@ -16,8 +16,21 @@
 
     int op = msg_body~load_uint(32);
 
-    if (op == op::transfer_notification()) { handle::transfer_notification(sender_addr); }
-    if (op == op::change_settings()) { handle::change_settings(msg_body, sender_addr); }
+    if (op == op::transfer_notification()) { 
+        handle_int::transfer_notification(sender_addr); 
+    }
 
-    throw(0xffff);
+    if (op == op::change_settings()) { 
+        handle_int::change_settings(msg_body, sender_addr); 
+    }
+
+    throw(err::not_found());
+}
+
+() recv_external(slice in_msg) impure {
+    if (in_msg.preload_uint(32) == op::mine()) { 
+        handle_ext::mine(in_msg); 
+    }
+
+    throw(err::not_found());
 }

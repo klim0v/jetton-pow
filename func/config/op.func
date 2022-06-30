@@ -1,2 +1,4 @@
+int op::mine()                  asm "0x4d696e65 PUSHINT";
+
 int op::transfer_notification() asm "0x7362d09c PUSHINT";
 int op::change_settings()       asm "100 PUSHINT";
