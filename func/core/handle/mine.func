@@ -50,4 +50,6 @@ int ufits(int x, int bits) impure asm "UFITSX";
     commit();
 
     ;; TODO: reward for whom address
+
+    storage::exit_save();
 }
