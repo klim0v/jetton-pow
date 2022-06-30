@@ -1,0 +1,7 @@
+;;
+;;  handle init file
+;;
+
+#include "mine.func";
+#include "settings.func";
+#include "transfer.func";

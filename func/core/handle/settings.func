@@ -1,0 +1,35 @@
+() handle_int::change_settings(slice body, slice sender_addr) impure inline_ref {
+    ;;
+    ;;  _ target_delta:(## 64) min_cpl:(## 8) max_cpl:(## 8) = Params;
+    ;;  _ reset_cpl:(## 8) update_params:(Maybe ^Params) = Body;
+    ;;
+
+    ;; auth by owner address
+    throw_unless(
+        err::no_access(), 
+        extlib::slice_data_equal?(sender_addr, storage::owner_addr)
+    );
+
+    int reset_cpl = body~load_uint(8);
+    if (reset_cpl) {
+        randomize(storage::seed);
+
+        storage::pow_complexity = (1 << reset_cpl);
+        storage::seed = (random() >> 128);
+    }
+
+    int update_params? = body~load_int(1);
+    if (update_params?) {
+        slice params = body~load_ref().begin_parse();
+
+        storage::target_delta = params~load_uint(64);
+        storage::min_cpl = params~load_uint(8);
+        storage::max_cpl = params~load_uint(8);
+    }
+
+    if (reset_cpl | update_params?) { 
+        storage::exit_save(); 
+    }
+
+    throw(err::nothing_upd());
+}

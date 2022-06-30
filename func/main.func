@@ -4,7 +4,7 @@
 #include "config/err.func";
 
 #include "core/storage.func";
-#include "core/handle.func";
+#include "core/handle/index.func";
 
 
 () recv_internal(int balance, int msg_value, cell msg, slice msg_body) impure {

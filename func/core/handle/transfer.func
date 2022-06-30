@@ -1,0 +1,14 @@
+() handle_int::transfer_notification(slice sender_addr) impure inline_ref {
+
+    int empty_jwall? = extlib::slice_data_equal?(
+        storage::jwall_addr, 
+        extlib::addr_none()
+    );
+
+    if (empty_jwall?) {
+        storage::jwall_addr = sender_addr;
+        storage::exit_save();
+    }
+
+    throw(err::jis_set());
+}
